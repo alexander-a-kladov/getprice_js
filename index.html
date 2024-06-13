@@ -30,6 +30,9 @@ p1 {
 <div><textarea placeholder="" id="cards-list-id"></textarea></div>
 
      <script>
+            var line_count = 0;
+            var line_all = 0;
+            var line_map = 0;
             function sleep(ms) {
                 return new Promise(resolve => setTimeout(resolve, ms));
             }
@@ -41,6 +44,10 @@ p1 {
                 reader.readAsText(file);
                 reader.onload = function() {
                     arr = reader.result.split('\n');
+                    line_all = arr.length;
+                    line_count = 0;
+                    line_map = new Map();
+                    let line_num = 0;
                     arr.forEach(function(item) {
                         item = item.trim();
                         if (item.length>0 && item.split('{').length>1) {
@@ -55,18 +62,29 @@ p1 {
                             lang = line[index++].split('[')[1].split(']')[0];
                             set = line[index].split('{')[1].split('/')[0];
                             num = line[index].split('}')[0].split('/')[1];
-                            getSetData(`https://api.scryfall.com/cards/${set}/${num}#${number}`);
+                            getSetData(`https://api.scryfall.com/cards/${set}/${num}#${line_num},${number}`);
                             //await sleep(30);
                         } else {
-                            addLine(`${item}\n`);
+                            addLine(`${item}\n`, line_num);
                         }
+                        line_num+=1;
                         });
                     }
                 }
 
-            function addLine(line) {
-                let cards_list = document.getElementById("cards-list-id");
-                cards_list.value += line;
+            function addLine(line, line_num) {
+                line_map.set(line_num.toString(), line);
+                line_count+=1;
+                if (line_count >= line_all) {
+                    console.log("end");
+                    let lines = [];
+                    let cards_list = document.getElementById("cards-list-id");
+                    let keys = Array.from(line_map.keys());
+                    for (var key of keys.sort(function(a, b) {return a - b;})) {
+                        lines.push(line_map.get(key));
+                    }
+                    cards_list.value = lines.join('');
+                }
             }
 
             function getSetData(rest_request) {
@@ -80,9 +98,10 @@ p1 {
                 })
                 .then(data => {
                 let set_num=`{${rest_request.split('cards/')[1].split('#')[0].toUpperCase()}}`;
-                let number=rest_request.split('#')[1];
+                let number=rest_request.split('#')[1].split(',')[1];
+                let line_num =rest_request.split('#')[1].split(',')[0];
                 let line = `${number}x ${data.name} - ${set_num} ${parseInt(90*data.prices.usd)}\n`;
-                addLine(line);
+                addLine(line, line_num);
                 if (data.has_more) {
                     console.log(data.next_page);
                      getSetData(data.next_page);
