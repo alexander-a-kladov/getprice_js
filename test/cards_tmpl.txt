@@ -1,0 +1,14 @@
+Стандарт:
+Белый :w::w::w:
+2x [ru] {neo/8}
+[ru] {vow/23}
+[ru] {vow/36}
+[en] {mom/9}
+[en] {dmu/37}
+2x [en] {dmu/384}
+2x [en] {dmu/386}
+2x [en] {dmu/385}
+[en] {dmu/423}
+[en] {neo/437}
+[en] {neo/435}
+
