@@ -26,7 +26,7 @@ p1 {
           <title>Get Cards Data</title>
      </head>
 <div>Загрузить список</div>
-<input type="file" id="load" onchange="loadBooks(this.files)"></input>
+<input type="file" id="load" onchange="loadBooks(this.files)" width=100px height=300px></input>
 <div><textarea placeholder="" id="cards-list-id"></textarea></div>
 
      <script>
@@ -45,7 +45,7 @@ p1 {
                         item = item.trim();
                         if (item.length>0 && item.split('{').length>1) {
                             line = item.split(' ');
-                            window.number = 1;
+                            let number = 1;
                             let lang = 'en';
                             let index = 0;
                             if (!isNaN(line[index][0].split('x')[0])) {
@@ -55,7 +55,7 @@ p1 {
                             lang = line[index++].split('[')[1].split(']')[0];
                             set = line[index].split('{')[1].split('/')[0];
                             num = line[index].split('}')[0].split('/')[1];
-                            getSetData(`https://api.scryfall.com/cards/${set}/${num}`);
+                            getSetData(`https://api.scryfall.com/cards/${set}/${num}#${number}`);
                             //await sleep(30);
                         } else {
                             addLine(`${item}\n`);
@@ -79,9 +79,10 @@ p1 {
                 return response.json()
                 })
                 .then(data => {
-                let line = `${window.number}x ${data.name} ${parseInt(90*data.prices.usd)}\n`;
+                let set_num=`{${rest_request.split('cards/')[1].split('#')[0].toUpperCase()}}`;
+                let number=rest_request.split('#')[1];
+                let line = `${number}x ${data.name} - ${set_num} ${parseInt(90*data.prices.usd)}\n`;
                 addLine(line);
-                var number = 0;
                 if (data.has_more) {
                     console.log(data.next_page);
                      getSetData(data.next_page);
