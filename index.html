@@ -28,7 +28,7 @@ p1 {
 <div>Загрузить список</div>
 <input type="file" id="load" onchange="loadBooks(this.files)" width=100px height=300px></input>
 <div><textarea placeholder="" id="cards-list-id"></textarea></div>
-
+<div><p id="count-id"></p></div>
      <script>
             var line_count = 0;
             var line_all = 0;
@@ -48,7 +48,7 @@ p1 {
                     line_count = 0;
                     line_map = new Map();
                     let line_num = 0;
-                    arr.forEach(function(item) {
+                    arr.forEach(function (item) {
                         item = item.trim();
                         if (item.length>0 && item.split('{').length>1) {
                             line = item.split(' ');
@@ -62,8 +62,7 @@ p1 {
                             lang = line[index++].split('[')[1].split(']')[0];
                             set = line[index].split('{')[1].split('/')[0];
                             num = line[index].split('}')[0].split('/')[1];
-                            getSetData(`https://api.scryfall.com/cards/${set}/${num}#${line_num},${number}`);
-                            //await sleep(30);
+                            getCard(`https://api.scryfall.com/cards/${set}/${num}#${line_num},${number}`);
                         } else {
                             addLine(`${item}\n`, line_num);
                         }
@@ -75,6 +74,8 @@ p1 {
             function addLine(line, line_num) {
                 line_map.set(line_num.toString(), line);
                 line_count+=1;
+                let count_elm = document.getElementById('count-id');
+                count_elm.textContent = `${line_count}/${line_all}`;
                 if (line_count >= line_all) {
                     console.log("end");
                     let lines = [];
@@ -108,6 +109,24 @@ p1 {
                 }
                 })
                 .catch(error => console.log(error))
+            }
+
+            async function getCard(rest_request) {
+                let line_num =rest_request.split('#')[1].split(',')[0];
+                await sleep(300*line_num);
+                const response = await fetch(rest_request);
+                if (response.ok) {
+                const data = await response.json();
+                let set_num=`{${rest_request.split('cards/')[1].split('#')[0].toUpperCase()}}`;
+                let number=rest_request.split('#')[1].split(',')[1];
+                let line = `${number}x ${data.name} - ${set_num} ${parseInt(90*data.prices.usd)}\n`;
+                addLine(line, line_num);
+                if (data.has_more) {
+                    console.log(data.next_page);
+                }
+                } else {
+                    addLine(`Error = ${response.ok}`, line_num);
+                }
             }
 
             function main() {
